@@ -23,14 +23,11 @@ class CameraDetector(Node):
     def find_pink_neatos(self,msg):
         self.cv_image = self.bridge.imgmsg_to_cv2(msg)
         image = cv2.cvtColor(self.cv_image, cv2.COLOR_RGB2BGR)
-        # Convert RGB to HSV
-        image_hsv = cv2.cvtColor(image, cv2.COLOR_RGB2HSV)
-        print(image_hsv)
         # define range of blue color in HSV
-        lower_pink = np.array([322,7,50])
-        upper_pink = np.array([336,95,95])
+        lower_pink = np.array([103,1,100])
+        upper_pink = np.array([255,85,155])
         # Threshold the HSV image to get only blue colors
-        mask = cv2.inRange(image_hsv, lower_pink, upper_pink)
+        mask = cv2.inRange(self.cv_image, lower_pink, upper_pink)
 
         if SHOWVISUALS==True: 
             # Bitwise-AND mask and original image
