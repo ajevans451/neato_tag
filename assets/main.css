@@ -1,0 +1,51 @@
+body {
+    background-color: grey;
+    background-image: url(unsplash-carpet-bg.jpg);
+    background-position: 60% 0%;
+    box-sizing: border-box;
+}
+.navbar {
+    box-sizing: border-box;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    background-color: rosybrown;
+    text-align: right;
+    padding: 5px 20px;
+}
+.navbar h3 {
+    text-align: left;
+    padding: 0;
+    margin: 0;
+}
+.text-content {
+    padding: 5px 10px;
+    background-color: rgba(37, 22, 17, 0.8);
+    color: whitesmoke;
+    border-radius: 15px;
+    width: 90%;
+    max-height: 100%;
+    min-height: fit-content;
+    position: relative;
+    left: 5%;
+    right: 5%;
+    top: 200px;
+    
+}
+.main-title {
+    width: fit-content;
+    text-align: center;
+    border-style: none;
+    border-width: 5px;
+    padding: 5px 20px;
+    border-radius: 0px 0px 15px 0px;
+}
+.body-text {
+    max-width: 100%;
+    min-width: fit-content;
+    columns: 3;
+    text-align: center;
+    padding: 5px 10px;
+}
+
