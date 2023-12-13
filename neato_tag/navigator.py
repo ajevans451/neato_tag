@@ -7,7 +7,8 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 
 FORWARD_ALPHA = 1000.0
-POINT_ALPHA = 1
+LIDAR_ALPHA = 1
+CAMERA_ALPHA = 1000
 TURN_CONSTANT=5
 neato_id=1
 
@@ -29,12 +30,12 @@ class Navigator(Node):
 
 
     def run_loop(self):
-        
-        final_gradient=self.cam_gradient # + self.lidar_gradient + np.array([FORWARD_ALPHA / 500, 0])
+        final_gradient = self.cam_gradient + self.lidar_gradient + np.array([FORWARD_ALPHA / 500, 0])
         # print(f'{self.lidar_gradient = }, {self.cam_gradient = }, {final_gradient = }')
-        print(self.cam_gradient)
+        # print(self.cam_gradient)
         target_distance = np.hypot(final_gradient[0], final_gradient[1])
         target_angle = -np.arctan2(final_gradient[1], final_gradient[0])
+        print(target_angle, target_distance)
         self.drive(target_angle,target_distance)
     
     def check_it_status(self,msg):
@@ -47,17 +48,15 @@ class Navigator(Node):
         cart_x=[]
         cart_y=[]
         for particle in msg.particles:
-            cart_x.append(particle.pose.position.x)
-            cart_y.append(particle.pose.position.y)
+            # yes x and y are switched
+            cart_x.append(particle.pose.position.y)
+            cart_y.append(particle.pose.position.x)
         cart_x=np.array(cart_x)
         cart_y=np.array(cart_y)
         dist_sq = cart_x ** 2 + cart_y ** 2
         cartesian = np.stack([cart_x, cart_y])
-        source_deriv = 2 * cartesian / (dist_sq ** 2) / cartesian.shape[1] * POINT_ALPHA
-        self.cam_gradient = -np.sum(source_deriv, axis=1)
-
-
-
+        source_deriv = 2 * cartesian / (dist_sq ** 2) / cartesian.shape[1] * CAMERA_ALPHA
+        self.cam_gradient = np.sum(source_deriv, axis=1)
 
     def avoid_obstacles(self,msg):
         angles = np.arange(msg.angle_min, msg.angle_max, msg.angle_increment)
@@ -73,29 +72,23 @@ class Navigator(Node):
         cartesian = np.stack([cart_x, cart_y])
         
         dist_sq = cart_x ** 2 + cart_y ** 2
-        source_deriv = 2 * cartesian / (dist_sq ** 2) / cartesian.shape[1] * POINT_ALPHA
+        source_deriv = 2 * cartesian / (dist_sq ** 2) / cartesian.shape[1] * LIDAR_ALPHA
         self.lidar_gradient = -np.sum(source_deriv, axis=1)
-
-
-
         
     def drive(self,angle, distance):
         """
         Takes in angle and distance to the nearest neato and commands Neato motors to head towards or away from that position
         """
         if self.it_status:
-            forward_constant=.5
+            forward_constant=.1
         else:
-            forward_constant=-.5
+            forward_constant=-.1
         drive_msg = Twist()
-        drive_msg.linear.x = np.clip(float(forward_constant), -1.0, 1.0)    #Determines final linear drive message
+        drive_msg.linear.x = np.clip(float(forward_constant * distance), -1.0, 1.0)    #Determines final linear drive message
         drive_msg.angular.z = np.clip(float(TURN_CONSTANT*angle), -1.0, 1.0)         #Determines final angular drive message
         print(drive_msg.linear.x, drive_msg.angular.z)
-        # self.pub.publish(drive_msg) #Commands Neato motors
+        self.pub.publish(drive_msg) #Commands Neato motors
         return
-        
-
-
         
 
 def main(args=None):

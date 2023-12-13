@@ -32,9 +32,10 @@ class CameraDetector(Node):
             if k==27:
                 cv2.destroyAllWindows()
         
-        for color in NEATO_TAG.player_colors:
+        for idx, color in enumerate(NEATO_TAG.player_colors):
             particle = self.find_neatos_from_mask(cv_image, *COLOR_TO_MASK[color], color.lower())
             if particle is not None:
+                particle.weight = float(idx)
                 cloud.particles.append(particle)
         self.publisher.publish(cloud)
 
@@ -50,7 +51,12 @@ class CameraDetector(Node):
         blobs, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         if len(blobs) == 0:
             return None
-        big_blob = max(blobs, key=lambda b: b.shape[0]).reshape((-1, 2))
+        blobs = [b.reshape((-1, 2)) for b in blobs]
+        blob_sizes = [(np.max(b[:, 0]) - np.min(b[:, 0])) * (np.max(b[:, 1]) - np.min(b[:, 1])) for b in blobs]
+        big_blob_idx = max(range(len(blobs)), key=lambda i: blob_sizes[i])
+        if blob_sizes[big_blob_idx] / mask.size < 0.002:
+            return None
+        big_blob = blobs[big_blob_idx]
         blob_center_pix = np.mean(big_blob, axis=0)+0.5 #.5 added to account for pixel center
         blob_max_y = np.max(big_blob[:, 1])
         blob_min_y = np.min(big_blob[:, 1])
