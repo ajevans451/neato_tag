@@ -32,7 +32,6 @@ class Tagging(Node):
         neato = self.closest_neato
         if (bump_msg.left_front or bump_msg.left_side or bump_msg.right_front or bump_msg.right_side) and neato is not None:
             msg = Int8()
-            print(neato)
             msg.data = neato
             self.it_pub.publish(msg)
     
@@ -59,7 +58,6 @@ class Tagging(Node):
             blobs = [b.reshape((-1, 2)) for b in blobs]
             blob_sizes = [(np.max(b[:, 0]) - np.min(b[:, 0])) * (np.max(b[:, 1]) - np.min(b[:, 1])) for b in blobs]
             big_blob_size = max(blob_sizes)
-            print(f'{color}: {big_blob_size} / {masked_image.size} is {big_blob_size/masked_image.size}')
             if big_blob_size / masked_image.size > 0.05:
                 color_sizes[idx] = big_blob_size
         
@@ -68,7 +66,6 @@ class Tagging(Node):
             self.closest_neato = None
             return
         self.closest_neato = max_idx
-        print(f'Closest neato is now {self.closest_neato}')
 
 
 def main():
