@@ -7,6 +7,7 @@ from sensor_msgs.msg import Image
 from nav2_msgs.msg import ParticleCloud, Particle
 from geometry_msgs.msg import Pose
 from cv_bridge import CvBridge
+from neato_tag.game import CALIBRATION_MATRIX, FOCAL_Y, NOTE_HEIGHT, NEATO_TAG, COLOR_TO_MASK
 
 SHOWVISUALS = True
 
@@ -14,32 +15,41 @@ SHOWVISUALS = True
 class CameraDetector(Node):
     def __init__(self):
         super().__init__('camera_detector')
-
-        self.cv_image = None                        # the latest image from the camera
         self.bridge = CvBridge()                  # used to convert ROS messages to OpenCV
         self.camera_subscriber = self.create_subscription(Image, 'camera/image_raw', self.find_neatos, 10)
         self.publisher = self.create_publisher(ParticleCloud, 'neatos_in_camera', 10)
         cv2.namedWindow('frame')
         cv2.namedWindow('mask')
+    
+    def find_neatos(self, msg):
+        cloud = ParticleCloud()
+        cloud.header = msg.header
 
+        cv_image = self.bridge.imgmsg_to_cv2(msg)
+        if SHOWVISUALS:
+            cv2.imshow('frame', cv_image)
+            k=cv2.waitKey(10)
+            if k==27:
+                cv2.destroyAllWindows()
+        
+        for color in NEATO_TAG.player_colors:
+            particle = self.find_neatos_from_mask(cv_image, *COLOR_TO_MASK[color], color.lower())
+            if particle is not None:
+                cloud.particles.append(particle)
+        self.publisher.publish(cloud)
 
-    def find_neatos_from_mask(self, msg, lower_mask, upper_mask):
-        CALIBRATION_MATRIX = np.array([[584.9932,0,0], [0, 584.6622,0], [377.3949,225.2839,1]])
-        FOCAL_Y = CALIBRATION_MATRIX[1, 1]
-        NOTE_HEIGHT = 0.0762
-
-        self.cv_image = self.bridge.imgmsg_to_cv2(msg)
-        image = cv2.cvtColor(self.cv_image, cv2.COLOR_RGB2BGR)
-        mask = cv2.inRange(self.cv_image, lower_mask, upper_mask)
+    def find_neatos_from_mask(self, cv_image, lower_mask, upper_mask, color):
+        mask = cv2.inRange(cv_image, lower_mask, upper_mask)
 
         if SHOWVISUALS:
-            cv2.imshow('frame',image)
-            cv2.imshow('pink mask',mask)
+            cv2.imshow(f'{color} mask',mask)
             k=cv2.waitKey(10)
             if k==27:
                 cv2.destroyAllWindows()
         
         blobs, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        if len(blobs) == 0:
+            return None
         big_blob = max(blobs, key=lambda b: b.shape[0]).reshape((-1, 2))
         blob_center_pix = np.mean(big_blob, axis=0)+0.5 #.5 added to account for pixel center
         blob_max_y = np.max(big_blob[:, 1])
@@ -56,11 +66,7 @@ class CameraDetector(Node):
         # print(point_in_3D)
         pose.position.x = point_in_3D[0]
         pose.position.y = point_in_3D[2]
-        particle = Particle(pose=pose, weight=1.0)
-        cloud = ParticleCloud()
-        cloud.header = msg.header
-        cloud.particles = [particle]
-        self.publisher.publish(cloud)
+        return Particle(pose=pose, weight=1.0)
 
 def main(args=None):
     rclpy.init()
