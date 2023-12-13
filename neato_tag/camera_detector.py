@@ -55,6 +55,8 @@ class CameraDetector(Node):
         blob_max_y = np.max(big_blob[:, 1])
         blob_min_y = np.min(big_blob[:, 1])
         blob_height_pix = blob_max_y - blob_min_y
+        if blob_height_pix == 0:
+            return None
         # print(blob_center_pix, blob_height_pix)
 
         z_distance = FOCAL_Y*NOTE_HEIGHT/blob_height_pix

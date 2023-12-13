@@ -23,7 +23,8 @@ setup(
             'allconnect = neato_tag.allconnect:main',
             'lidar_detector = neato_tag.lidar_detector:main',
             'camera_detector = neato_tag.camera_detector:main',
-            'tagging = neato_tag.tagging:main'
+            'tagging = neato_tag.tagging:main',
+            'navigator=neato_tag.navigator:main'
         ],
     },
 )
