@@ -9,7 +9,7 @@ from neato_tag.game import NUM_PIXELS, NEATO_TAG, COLOR_TO_MASK
 from cv_bridge import CvBridge
 
 
-SHOW_VISUALS = True
+SHOW_VISUALS = False
 
 
 class Tagging(Node):

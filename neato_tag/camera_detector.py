@@ -9,7 +9,7 @@ from geometry_msgs.msg import Pose
 from cv_bridge import CvBridge
 from neato_tag.game import CALIBRATION_MATRIX, FOCAL_Y, NOTE_HEIGHT, NEATO_TAG, COLOR_TO_MASK
 
-SHOWVISUALS = True
+SHOWVISUALS = False
 
 
 class CameraDetector(Node):

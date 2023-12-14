@@ -15,7 +15,7 @@ neato_id=1
 
 class Navigator(Node):
 
-    def __init__(self,neato_id):
+    def __init__(self, neato_id, start_as_it):
         super().__init__('navigator')
         self.camera_subscriber = self.create_subscription(ParticleCloud, 'neatos_in_camera', self.camera_callback, 10)
         self.it_status_subscriber = self.create_subscription(Int8, 'it_status', self.check_it_status, 10)
@@ -23,7 +23,7 @@ class Navigator(Node):
         self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
         self.lidar_gradient = np.zeros((2,))
         self.cam_gradient = np.zeros((2,))
-        self.it_status = False
+        self.it_status = start_as_it
         self.neato_id = neato_id
         self.create_timer(0.03, self.run_loop)
 

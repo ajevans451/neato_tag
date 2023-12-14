@@ -19,7 +19,6 @@ NOTE_HEIGHT = 0.0762
 NUM_PIXELS=11943936
 
 
-player_colors=["PINK", "PURPLE", "YELLOW", "GREEN"]
 COLOR_TO_MASK = {
     "PINK":(LOWER_PINK, UPPER_PINK),
     "BLUE":(LOWER_BLUE, UPPER_BLUE),
@@ -35,13 +34,18 @@ class NeatoTag:
     It stores the number and colors of the players in the game.
     """
 
-    def __init__(self, player_colors):
-        self.num_players = len(player_colors)
-        self.player_colors=player_colors
+    def __init__(self, player_info):
+        self.num_players = len(player_info)
+        self.player_colors = [info[0] for info in player_info]
+        self.hosts = [info[1] for info in player_info]
 
 
     def __repr__(self):
         return f"(Number of players: {self.num_players}, Active colors: {self.player_colors})"
     
     
-NEATO_TAG=NeatoTag(player_colors)
+NEATO_TAG=NeatoTag([
+    ('PINK', '192.168.16.93'),
+    ('PURPLE', '192.168.16.96'),
+    ('GREEN', '192.168.17.207'),
+])
