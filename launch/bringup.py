@@ -20,8 +20,8 @@ def generate_launch_description():
                 package='neato_node2',
                 executable='neato_node',
                 name='neato_driver',
-                parameters=[{"use_udp": True},
-                            {"udp_port": FIRST_SENSOR_PORT + idx},
+                parameters=[{"use_udp": "true"},
+                            {"udp_port": str(FIRST_SENSOR_PORT + idx)},
                             {"robot_name": robot_name},
                             {"host": host}],
                 output='screen'
@@ -40,7 +40,7 @@ def generate_launch_description():
                 package='neato_node2',
                 executable='setup_udp_stream',
                 name='udp_stream_setup',
-                parameters=[{"receive_port": (cam_port := FIRST_CAMERA_PORT + idx)},
+                parameters=[{"receive_port": (udp_video_port := str(FIRST_CAMERA_PORT + idx))},
                             {"width": 1024},
                             {"height": 768},
                             {"fps": 30},
@@ -55,15 +55,19 @@ def generate_launch_description():
                     {'camera_name': 'camera'},
                     {'use_gst_timestamps': False},
                     {'frame_id': 'camera'},
-                    {'gscam_config': ['udpsrc port=', str(cam_port), ' ! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264  ! videoconvert']}
+                    {'gscam_config': ['udpsrc port=',
+                                      udp_video_port,
+                                      ' ! application/x-rtp, payload=96 ! rtpjitterbuffer ! rtph264depay ! avdec_h264  ! videoconvert']}
                 ]
             )
-        ]) for idx, host in enumerate(NEATO_TAG.hosts)]
+        ])
+    for idx, host in enumerate(NEATO_TAG.hosts)]
     
     camera_detector_nodes = [
         Node(
             package='neato_tag',
             executable='camera_detector',
+            name=f'camera_detector_{idx}',
             remappings=[
                 ('camera/image_raw', f'robot{idx}/camera/image_raw'),
                 ('neatos_in_camera', f'robot{idx}/neatos_in_camera')
@@ -75,6 +79,11 @@ def generate_launch_description():
         Node(
             package='neato_tag',
             executable='tagging',
+            name=f'tagging_{idx}',
+            parameters=[{
+                'neato_id': idx,
+                'start_as_it': idx == 0
+            }],
             remappings=[
                 ('camera/image_raw', f'robot{idx}/camera/image_raw'),
                 ('bump', f'robot{idx}/bump')
@@ -86,6 +95,7 @@ def generate_launch_description():
         Node(
             package='neato_tag',
             executable='navigator',
+            name=f'navigator_{idx}',
             parameters=[
                 {'neato_id': idx},
                 {'start_as_it': idx == 0}
@@ -97,4 +107,4 @@ def generate_launch_description():
         )
     for idx in range(NEATO_TAG.num_players)]
 
-    return LaunchDescription(launch_neatos + tagging_nodes)
+    return LaunchDescription(tagging_nodes)

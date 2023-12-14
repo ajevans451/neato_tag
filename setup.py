@@ -25,7 +25,8 @@ setup(
             'lidar_detector = neato_tag.lidar_detector:main',
             'camera_detector = neato_tag.camera_detector:main',
             'tagging = neato_tag.tagging:main',
-            'navigator=neato_tag.navigator:main'
+            'navigator=neato_tag.navigator:main',
+            'bump_print=neato_tag.bump_print:main',
         ],
     },
 )

@@ -18,15 +18,12 @@ def get_actual_addr(base_addr):
 
 
 def main():
-    ip_addrs = [get_actual_addr(addr) for addr in sys.argv[1:]]
-    assert len(ip_addrs) == NEATO_TAG.num_players
-
-    for idx, addr in enumerate(ip_addrs):
+    for idx, addr in enumerate(NEATO_TAG.hosts):
         print(f'ros2 launch neato_node2 bringup_multi.py host:={addr} udp_sensor_port:={FIRST_SENSOR_PORT + idx} udp_video_port:={FIRST_CAMERA_PORT + idx} robot_name:=robot{idx}')
         print(f'ros2 run neato_tag camera_detector --ros-args -r camera/image_raw:=robot{idx}/camera/image_raw neatos_in_camera:=robot{idx}/neatos_in_camera')
         print(f'ros2 run neato_tag tagging --ros-args -r camera/image_raw:=robot{idx}/camera/image_raw bump:=robot{idx}/bump')
     print()
-    for idx, addr in enumerate(ip_addrs):
+    for idx, addr in enumerate(NEATO_TAG.hosts):
         print(f'ros2 run neato_tag navigator --ros-args -r scan:=robot{idx}/scan neatos_in_camera:=robot{idx}/neatos_in_camera')
 
 

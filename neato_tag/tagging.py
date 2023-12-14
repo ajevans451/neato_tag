@@ -9,34 +9,42 @@ from neato_tag.game import NUM_PIXELS, NEATO_TAG, COLOR_TO_MASK
 from cv_bridge import CvBridge
 
 
-SHOW_VISUALS = False
+SHOW_VISUALS = True
 
 
 class Tagging(Node):
-    def __init__(self):
+    def __init__(self, neato_id = 1, start_as_it = True):
         super().__init__('tagging')
         self.create_subscription(Image, 'camera/image_raw', self.find_closest_neato, 10)
         self.create_subscription(Bump, 'bump', self.find_bump, 10)
+        self.create_subscription(Int8, 'it_status', self.update_it, 10)
         self.it_pub = self.create_publisher(Int8, 'it_status', 10)
+        self.neato_id = neato_id
+        self.is_it = start_as_it
         self.closest_neato = None
-
         self.bridge = CvBridge()
-        detector_params = cv2.SimpleBlobDetector_Params()
         
         if SHOW_VISUALS:
             cv2.namedWindow('frame')
             for color in NEATO_TAG.player_colors:
                 cv2.namedWindow(color.lower())
     
+    def update_it(self, it_msg: Int8):
+        self.is_it = it_msg.data == self.neato_id
+    
     def find_bump(self, bump_msg: Bump):
         neato = self.closest_neato
-        if (bump_msg.left_front or bump_msg.left_side or bump_msg.right_front or bump_msg.right_side) and neato is not None:
-            msg = Int8()
-            msg.data = neato
-            self.it_pub.publish(msg)
+        # if self.is_it and (bump_msg.left_front or bump_msg.left_side or bump_msg.right_front or bump_msg.right_side) and neato is not None:
+        #     msg = Int8()
+        #     msg.data = neato
+        #     self.it_pub.publish(msg)
+        msg = Int8()
+        msg.data = self.neato_id
+        self.it_pub.publish(msg)
     
     def find_closest_neato(self, image_msg: Image):
-        cv_image = self.bridge.imgmsg_to_cv2(image_msg)
+        cv_image = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding='bgr8')
+        hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
         if SHOW_VISUALS:
             cv2.imshow('frame', cv_image)
             k=cv2.waitKey(10)
@@ -46,7 +54,7 @@ class Tagging(Node):
         color_sizes = [0 for _ in range(NEATO_TAG.num_players)]
         for idx, color in enumerate(NEATO_TAG.player_colors):
             mask = COLOR_TO_MASK[color]
-            masked_image = cv2.inRange(cv_image, mask[0], mask[1])
+            masked_image = cv2.inRange(hsv_image, mask[0], mask[1])
             if SHOW_VISUALS:
                 cv2.imshow(color.lower(), masked_image)
                 k=cv2.waitKey(10)
@@ -58,7 +66,7 @@ class Tagging(Node):
             blobs = [b.reshape((-1, 2)) for b in blobs]
             blob_sizes = [(np.max(b[:, 0]) - np.min(b[:, 0])) * (np.max(b[:, 1]) - np.min(b[:, 1])) for b in blobs]
             big_blob_size = max(blob_sizes)
-            if big_blob_size / masked_image.size > 0.05:
+            if big_blob_size / masked_image.size > 0.02:
                 color_sizes[idx] = big_blob_size
         
         max_idx = max(range(len(color_sizes)), key=lambda i: color_sizes[i])

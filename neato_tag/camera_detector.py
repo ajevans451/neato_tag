@@ -25,7 +25,8 @@ class CameraDetector(Node):
         cloud = ParticleCloud()
         cloud.header = msg.header
 
-        cv_image = self.bridge.imgmsg_to_cv2(msg)
+        cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='bgr8')
+        hsv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2HSV)
         if SHOWVISUALS:
             cv2.imshow('frame', cv_image)
             k=cv2.waitKey(10)
@@ -33,7 +34,7 @@ class CameraDetector(Node):
                 cv2.destroyAllWindows()
         
         for idx, color in enumerate(NEATO_TAG.player_colors):
-            particle = self.find_neatos_from_mask(cv_image, *COLOR_TO_MASK[color], color.lower())
+            particle = self.find_neatos_from_mask(hsv_image, *COLOR_TO_MASK[color], color.lower())
             if particle is not None:
                 particle.weight = float(idx)
                 cloud.particles.append(particle)
