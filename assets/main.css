@@ -1,5 +1,5 @@
 body {
-    background-color: grey;
+    background-color: white;
     background-image: url(unsplash-spiral-bg.jpg);
     background-position: 60% 40%;
     box-sizing: border-box;
@@ -11,7 +11,8 @@ body {
     top: 0px;
     left: 0px;
     width: 100%;
-    background-color: rgb(182, 183, 199);
+    background-color: rgb(6, 19, 41);
+    color: azure;
     
 }
 .navbar h3 {
@@ -25,26 +26,29 @@ body {
 .navbar-link {
     width: 100%;
     text-align: right;
-
 }
 .navbar-link a {
-    border: 3px;
-    border-radius: 0 0 0 5px;
-    margin: 0;
-    padding: 5px 20px 5px 20px;
+    box-sizing: border-box;
     height: 100%;
+    position: relative;
+    top: 17.5%;
+    border: 3px;
+    border-radius: 3px;
+    margin: 2px;
+    padding: 5px 20px 5px 20px;
     font-size: large;
     text-decoration: solid;
     text-align: center;
     background-color: rgba(32, 94, 218, 0.5);
     border-color: rgba(32, 94, 218, 0.8);
     color: azure;
+
 }
 .text-content, .media-content {
     box-sizing: border-box;
     padding: 5px 10px;
-    background-color: rgba(17, 37, 36, 0.8);
-    color: rgb(245, 245, 245);
+    background-color: rgba(6, 19, 41, 0.8);
+    color: rgb(240, 242, 246);
     border-radius: 15px;
     width: 90%;
     max-height: 100%;
@@ -62,7 +66,7 @@ body {
     position: relative;
     left: 5%;
     right: 5%;
-    size: 30em;
+    font-size: x-large;
     border-style: none;
     border-width: 5px;
     padding: 5px 20px;
@@ -72,8 +76,8 @@ body {
     flex-direction: row;
     max-width: 33%;
     min-width: -moz-fit-content;
-    min-width: fit-content;
     min-width: -webkit-fill-available;
+    min-width: fit-content;
     padding: 5px 20px;  
 }
 .flex-container img{
@@ -111,6 +115,11 @@ footer {
     position: fixed;
     border-radius: 3px 3px 0px 0px;
     bottom: 0px;
-    background-color: rgba(215, 250, 247, 0.5);
+    color: azure;
+    background-color: rgba(105, 118, 117, 0.75);
+}
+footer a {
+    color: aquamarine;
+    text-decoration: none;
 }
 
