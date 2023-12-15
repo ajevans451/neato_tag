@@ -16,7 +16,7 @@ class MultiConnect(Node):
 
 def main():
     rclpy.init()
-    n = MultiConnect(2)
+    n = MultiConnect(3)
     rclpy.spin(n)
     rclpy.shutdown()
 

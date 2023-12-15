@@ -1,19 +1,21 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.time import Time
 from std_msgs.msg import Int8
 import numpy as np
 from nav2_msgs.msg import ParticleCloud
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
 
-FORWARD_ALPHA = 1000.0
+FORWARD_ALPHA = 500.0
 LIDAR_ALPHA = 1
-CAMERA_ALPHA_IT = 1000
-CAMERA_ALPHA_NOT_IT = 2
+CAMERA_ALPHA_IT = 500
+CAMERA_ALPHA_NOT_IT = 0.5
 TURN_CONSTANT=5
 FORWARD_CONSTANT = 0.15
 MAX_SPEED = 0.7
 NOT_IT_SCALE = 0.9
+FROZEN_TIME = 5 * 1e9  # nanoseconds
 
 class Navigator(Node):
 
@@ -22,20 +24,33 @@ class Navigator(Node):
         self.camera_subscriber = self.create_subscription(ParticleCloud, 'neatos_in_camera', self.camera_callback, 10)
         self.it_status_subscriber = self.create_subscription(Int8, 'it_status', self.check_it_status, 10)
         self.lidar_subscriber = self.create_subscription(LaserScan, 'scan', self.avoid_obstacles, 10)
+        self.create_timer(0.1, self.unfreeze)
         self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
         self.lidar_gradient = np.zeros((2,))
         self.cam_gradient = np.zeros((2,))
         self.neato_id = self.declare_parameter('neato_id', 0).value
         self.it_status = self.declare_parameter('start_as_it', True).value
+        self.frozen_time = None
         self.create_timer(0.03, self.run_loop)
+    
+    def unfreeze(self):
+        if self.frozen_time is None:
+            return
+        if (self.get_clock().now() - self.frozen_time).nanoseconds >= FROZEN_TIME:
+            self.frozen_time = None
 
     def run_loop(self):
         drive_msg = Twist()
+        if self.frozen_time is not None:
+            self.pub.publish(drive_msg)
+            return
+
         forward_gradient = np.array([FORWARD_ALPHA / 500, 0])
+        print(self.cam_gradient)
         if self.it_status:
             final_gradient = self.cam_gradient + self.lidar_gradient + forward_gradient
         else:
-            final_gradient = -self.cam_gradient + self.lidar_gradient - forward_gradient
+            final_gradient = self.lidar_gradient - forward_gradient
         target_distance = np.hypot(final_gradient[0], final_gradient[1])
         target_angle = -np.arctan2(final_gradient[1], final_gradient[0])
         
@@ -45,7 +60,7 @@ class Navigator(Node):
             if target_angle > np.pi:
                 target_angle -= 2*np.pi
             target_angle *= -1
-        print(target_angle, target_distance)
+        # print(target_angle, target_distance)
         
         lin_speed = np.clip(float(FORWARD_CONSTANT * target_distance), -MAX_SPEED, MAX_SPEED)
         ang_speed = np.clip(float(TURN_CONSTANT * target_angle), -MAX_SPEED, MAX_SPEED)
@@ -57,11 +72,13 @@ class Navigator(Node):
         drive_msg.angular.z = ang_speed
         self.pub.publish(drive_msg) #Commands Neato motors
     
-    def check_it_status(self,msg):
+    def check_it_status(self, msg):
         if msg.data==self.neato_id:
-            self.it_status=True
+            self.it_status = True
+            self.frozen_time = self.get_clock().now()
         else:
-            self.it_status=False
+            self.it_status = False
+            self.frozen = None
 
     def camera_callback(self,msg):
         cart_x=[]

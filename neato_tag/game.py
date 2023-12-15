@@ -2,8 +2,8 @@
 import numpy as np
 
 #Color Calibrations
-LOWER_PINK = np.array([155,134,0])
-UPPER_PINK = np.array([270,255,255])
+LOWER_PINK = np.array([155,134,30])
+UPPER_PINK = np.array([168,255,255])
 LOWER_BLUE = np.array([0,52,80])
 UPPER_BLUE = np.array([26,104,255])
 LOWER_YELLOW = np.array([123,137,0])
@@ -12,8 +12,8 @@ LOWER_GREEN = np.array([65,120,30])
 UPPER_GREEN = np.array([80,255,255])
 LOWER_PURPLE = np.array([118, 77, 53])
 UPPER_PURPLE = np.array([141, 193, 255])
-CALIBRATION_MATRIX = np.array([[584.9932,0,0], [0, 584.6622,0], [377.3949,225.2839,1]])
-# CALIBRATION_MATRIX = np.array([[584.9932,0,377.3949], [0, 584.6622,225.2839], [0,0,1]])
+# CALIBRATION_MATRIX = np.array([[584.9932,0,0], [0, 584.6622,0], [377.3949,225.2839,1]])
+CALIBRATION_MATRIX = np.array([[584.9932,0,377.3949], [0, 584.6622,225.2839], [0,0,1]])
 FOCAL_Y = CALIBRATION_MATRIX[1, 1]
 NOTE_HEIGHT = 0.0762
 NUM_PIXELS=11943936
@@ -46,6 +46,6 @@ class NeatoTag:
     
 NEATO_TAG=NeatoTag([
     ('GREEN', '192.168.17.207'),
-    ('PURPLE', '192.168.16.96'),
+    ('PURPLE', '192.168.16.86'),
     ('PINK', '192.168.16.93'),
 ])
