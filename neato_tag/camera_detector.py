@@ -9,7 +9,7 @@ from geometry_msgs.msg import Pose
 from cv_bridge import CvBridge
 from neato_tag.game import CALIBRATION_MATRIX, FOCAL_Y, NOTE_HEIGHT, NEATO_TAG, COLOR_TO_MASK
 
-SHOWVISUALS = False
+SHOWVISUALS = True
 
 
 class CameraDetector(Node):
@@ -18,8 +18,9 @@ class CameraDetector(Node):
         self.bridge = CvBridge()                  # used to convert ROS messages to OpenCV
         self.camera_subscriber = self.create_subscription(Image, 'camera/image_raw', self.find_neatos, 10)
         self.publisher = self.create_publisher(ParticleCloud, 'neatos_in_camera', 10)
-        cv2.namedWindow('frame')
-        cv2.namedWindow('mask')
+        if SHOWVISUALS:
+            cv2.namedWindow('frame')
+            cv2.namedWindow('mask')
     
     def find_neatos(self, msg):
         cloud = ParticleCloud()

@@ -102,9 +102,10 @@ def generate_launch_description():
             ],
             remappings=[
                 ('scan', f'robot{idx}/scan'),
-                ('neatos_in_camera', f'robot{idx}/neatos_in_camera')
+                ('neatos_in_camera', f'robot{idx}/neatos_in_camera'),
+                ('cmd_vel', f'robot{idx}/cmd_vel')
             ]
         )
     for idx in range(NEATO_TAG.num_players)]
 
-    return LaunchDescription(tagging_nodes)
+    return LaunchDescription(tagging_nodes + camera_detector_nodes + navigator_nodes)

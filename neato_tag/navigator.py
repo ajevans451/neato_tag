@@ -8,14 +8,16 @@ from sensor_msgs.msg import LaserScan
 
 FORWARD_ALPHA = 1000.0
 LIDAR_ALPHA = 1
-CAMERA_ALPHA = 1000
+CAMERA_ALPHA_IT = 1000
+CAMERA_ALPHA_NOT_IT = 2
 TURN_CONSTANT=5
 FORWARD_CONSTANT = 0.15
-neato_id=1
+MAX_SPEED = 0.7
+NOT_IT_SCALE = 0.9
 
 class Navigator(Node):
 
-    def __init__(self, neato_id, start_as_it):
+    def __init__(self):
         super().__init__('navigator')
         self.camera_subscriber = self.create_subscription(ParticleCloud, 'neatos_in_camera', self.camera_callback, 10)
         self.it_status_subscriber = self.create_subscription(Int8, 'it_status', self.check_it_status, 10)
@@ -23,8 +25,8 @@ class Navigator(Node):
         self.pub = self.create_publisher(Twist, 'cmd_vel', 10)
         self.lidar_gradient = np.zeros((2,))
         self.cam_gradient = np.zeros((2,))
-        self.it_status = start_as_it
-        self.neato_id = neato_id
+        self.neato_id = self.declare_parameter('neato_id', 0).value
+        self.it_status = self.declare_parameter('start_as_it', True).value
         self.create_timer(0.03, self.run_loop)
 
     def run_loop(self):
@@ -45,8 +47,14 @@ class Navigator(Node):
             target_angle *= -1
         print(target_angle, target_distance)
         
-        drive_msg.linear.x = np.clip(float(FORWARD_CONSTANT * target_distance), -1.0, 1.0)    #Determines final linear drive message
-        drive_msg.angular.z = np.clip(float(TURN_CONSTANT * target_angle), -1.0, 1.0)         #Determines final angular drive message
+        lin_speed = np.clip(float(FORWARD_CONSTANT * target_distance), -MAX_SPEED, MAX_SPEED)
+        ang_speed = np.clip(float(TURN_CONSTANT * target_angle), -MAX_SPEED, MAX_SPEED)
+        if not self.it_status:
+            lin_speed *= NOT_IT_SCALE
+            ang_speed *= NOT_IT_SCALE
+
+        drive_msg.linear.x = lin_speed
+        drive_msg.angular.z = ang_speed
         self.pub.publish(drive_msg) #Commands Neato motors
     
     def check_it_status(self,msg):
@@ -66,7 +74,7 @@ class Navigator(Node):
         cart_y=np.array(cart_y)
         dist_sq = cart_x ** 2 + cart_y ** 2
         cartesian = np.stack([cart_x, cart_y])
-        source_deriv = 2 * cartesian / (dist_sq ** 2) / cartesian.shape[1] * CAMERA_ALPHA
+        source_deriv = 2 * cartesian / (dist_sq ** 2) / cartesian.shape[1] * (CAMERA_ALPHA_IT if self.it_status else CAMERA_ALPHA_NOT_IT)
         self.cam_gradient = np.sum(source_deriv, axis=1)
 
     def avoid_obstacles(self,msg):
@@ -89,7 +97,7 @@ class Navigator(Node):
 
 def main(args=None):
     rclpy.init()
-    n = Navigator(1)
+    n = Navigator()
     rclpy.spin(n)
     rclpy.shutdown()
 

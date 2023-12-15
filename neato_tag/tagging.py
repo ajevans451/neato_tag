@@ -9,18 +9,19 @@ from neato_tag.game import NUM_PIXELS, NEATO_TAG, COLOR_TO_MASK
 from cv_bridge import CvBridge
 
 
-SHOW_VISUALS = True
+SHOW_VISUALS = False
 
 
 class Tagging(Node):
-    def __init__(self, neato_id = 1, start_as_it = True):
+    def __init__(self):
         super().__init__('tagging')
         self.create_subscription(Image, 'camera/image_raw', self.find_closest_neato, 10)
         self.create_subscription(Bump, 'bump', self.find_bump, 10)
         self.create_subscription(Int8, 'it_status', self.update_it, 10)
         self.it_pub = self.create_publisher(Int8, 'it_status', 10)
-        self.neato_id = neato_id
-        self.is_it = start_as_it
+
+        self.neato_id = self.declare_parameter('neato_id', 0).value
+        self.is_it = self.declare_parameter('start_as_it', True).value
         self.closest_neato = None
         self.bridge = CvBridge()
         
@@ -34,13 +35,10 @@ class Tagging(Node):
     
     def find_bump(self, bump_msg: Bump):
         neato = self.closest_neato
-        # if self.is_it and (bump_msg.left_front or bump_msg.left_side or bump_msg.right_front or bump_msg.right_side) and neato is not None:
-        #     msg = Int8()
-        #     msg.data = neato
-        #     self.it_pub.publish(msg)
-        msg = Int8()
-        msg.data = self.neato_id
-        self.it_pub.publish(msg)
+        if self.is_it and (bump_msg.left_front or bump_msg.left_side or bump_msg.right_front or bump_msg.right_side) and neato is not None:
+            msg = Int8()
+            msg.data = neato
+            self.it_pub.publish(msg)
     
     def find_closest_neato(self, image_msg: Image):
         cv_image = self.bridge.imgmsg_to_cv2(image_msg, desired_encoding='bgr8')
