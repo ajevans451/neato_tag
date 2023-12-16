@@ -20,18 +20,41 @@
         </div>
         <div class="body-text flex-container">
             <div id="main-desc">
-                <p>This is the main project description.</p>
-                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut porttitor leo a diam sollicitudin tempor id eu nisl. Mattis nunc sed blandit libero volutpat sed cras ornare. Congue mauris rhoncus aenean vel elit scelerisque mauris. Sed pulvinar proin gravida hendrerit. Consectetur adipiscing elit ut aliquam purus. Tortor id aliquet lectus proin. Orci dapibus ultrices in iaculis nunc sed augue lacus. Tempor id eu nisl nunc mi ipsum faucibus vitae aliquet. Viverra justo nec ultrices dui sapien eget mi proin sed. Semper feugiat nibh sed pulvinar proin. Lacus luctus accumsan tortor posuere ac ut. Et sollicitudin ac orci phasellus egestas tellus rutrum tellus pellentesque. Eget nullam non nisi est sit amet facilisis. Consectetur libero id faucibus nisl. Libero enim sed faucibus turpis in eu mi. Nunc sed blandit libero volutpat. Quis imperdiet massa tincidunt nunc pulvinar sapien et ligula ullamcorper. Nec ultrices dui sapien eget mi proin sed libero enim. Tortor id aliquet lectus proin nibh.</p>
-                <img src="assets/neato-tag-test-img.png" alt="this is a test image">
-            </div>
-            <div id="ethics-statement">
-                <p>This is the ethics statement.</p>
-                <p>Cursus metus aliquam eleifend mi in nulla posuere sollicitudin aliquam. Etiam tempor orci eu lobortis elementum nibh. Nunc sed augue lacus viverra. Eget magna fermentum iaculis eu non diam phasellus vestibulum. Ut lectus arcu bibendum at varius vel pharetra vel. Tempus quam pellentesque nec nam aliquam sem et tortor. Pharetra sit amet aliquam id diam maecenas ultricies mi eget. Placerat duis ultricies lacus sed turpis tincidunt id aliquet risus. Condimentum vitae sapien pellentesque habitant morbi tristique senectus et netus. Enim sit amet venenatis urna cursus eget nunc scelerisque viverra. Proin libero nunc consequat interdum varius sit amet. Sit amet aliquam id diam maecenas ultricies mi.</p>
+                <h3>Project Description</h3>
+                <p>Our project is Neato Tag- a system of robot vacuums where one is “it” and chases the others while they run away from it. 
+                    If “it” manages to tag another Neato, that Neato will then become “it” and the game continues. 
+                    <br>We chose to undertake this project because it aligned with a lot of the learning goals we set for ourselves at the beginning of the semester. These goals include understanding the math behind a complex algorithm, using multiple Neatos and multiple sensors on each Neato, and gaining experience using ROS2. The algorithm we explored was the Kalman Filter, which uses a series of measurements in order to estimate some unknown variable. We used the Neato’s camera, LiDAR, and bump sensors throughout the course of the project. We also explored many ROS2 topics, including the creation of launch files, satisfying that learning goal as well. 
+                    <br>Our game is simple. Each Neato has a unique color sticky note that is used to identify it as well as to figure out how far away it is from the others. One of the Neatos is chosen to be “it” first and begins chasing the others. It uses the onboard camera to find any of the target colors. If it sees one, it will turn towards it while driving at full speed. When the bump sensor is triggered by a collision, the camera checks to see what color Neato it just hit. That color Neato now has to wait 5 seconds before beginning to chase the others and continuing the game. This whole time the Neatos are all using their LiDARs to survey the surrounding area and avoid any obstacles that they come near while chasing or running away from the other Neatos.
+                    <br>Here you can see our Neatos playing tag with each other! It was very fun and rewarding to work on this project and to finally see everything come together in the end.
+                </p>
             </div>
             <div id="system-arch">
-                <p>This is a description of the system architecture.</p>
-                <p>Rhoncus dolor purus non enim praesent elementum. Lorem ipsum dolor sit amet consectetur adipiscing. Aliquet bibendum enim facilisis gravida neque convallis. Amet consectetur adipiscing elit ut aliquam purus sit amet. Tincidunt tortor aliquam nulla facilisi cras. Vitae auctor eu augue ut lectus arcu. Ac placerat vestibulum lectus mauris ultrices eros in cursus turpis. Tellus in hac habitasse platea dictumst vestibulum rhoncus. Consectetur adipiscing elit ut aliquam purus. Amet massa vitae tortor condimentum. Tellus pellentesque eu tincidunt tortor aliquam nulla facilisi. Et magnis dis parturient montes nascetur ridiculus mus mauris vitae. Sagittis nisl rhoncus mattis rhoncus urna neque viverra justo nec. Duis ut diam quam nulla porttitor massa id neque aliquam.</p>
-                <img src="https://www.iwastesomuchtime.com/wp-content/uploads/sites/68/2022/09/venn-diagram-memes-55771.png" alt="this is a test image">
+                <h3>System Architecture</h3>
+                <p>Our system architecture consists of three main nodes:
+                    <ul>
+                        <li><strong>camera_detector:</strong> a node running on each neato to detect the relative position of other neatos</li>
+                        <li><strong>tagging:</strong> a node for each neato to determine when it has tagged another neato</li>
+                        <li><strong>navigator:</strong> the motion control node for each neato</li>
+                    </ul>
+                    These combine to create tag between neatos.
+                    camera_detector’s main goal is to publish a point cloud of all other neatos that the camera can see. To do this, we placed colorful sticky notes around each neato to identify them, and created a custom color mask for each of these sticky notes. We chose HSV for these color masks, as we wanted to focus on the color (hue) of the sticky notes, and not the brightness (value). For each mask, we made a binary image from the regular camera image and used a blob detection algorithm to find the largest concentration of each color. Since we knew the actual height of the blob, we could use the camera intrinsics combined with the height of the blob to calculate the precise position of the blob in 3D space using some basic linear transformations. We then publish the position found for each color (if there was one found) into a ParticleCloud, and send that information to the navigator node.
+                    <br>
+                    tagging has the goal of calculating when it has tagged another neato. To do this, it listens to both the camera and the bump sensor. Every time a new camera image is received, the node finds the closest neato within the image. Using the same color masks as camera_detector, it finds the biggest blob in each of the resulting binary images. Assuming that blob is large enough, it decides that the corresponding neato is the closest neato. If no blobs are big enough, it notes that no neato is close to it. At the same time, the tagging node listens to the bump sensor. If any part of the bump sensor has been hit, the tagging node checks if it is running on the neato that is currently “it”, and if so, sends a message to all other neatos that the closest neato is now “it” (if no neato is closest, it does not send this message).
+                    <br>
+                    The navigator node is the meat of the tagging behavior. It controls the full movement of the neato. navigator has three states: frozen, tagger, and runner. When a neato is first tagged, it freezes for five seconds; enough time for the previous tagger to get away. Once the five seconds are up, the neato transitions itself into tagger mode. In this mode, the neato moves forward while also performing obstacle avoidance and chasing any neatos given by camera_detector. To do this, it calculates a cost function - any point in the LiDAR scan is penalized, while points given by camera_detector (where the other neatos are) are encouraged, where the weights for both are inversely proportional to the distance from the respective point, squared. The neato calculates the gradient of this cost function and attempts to move in that direction. It stays in this state until the tagging node detects a tag. The neato then transitions itself into runner mode, which does the exact same thing except the other neatos are now negatively weighted, causing the neato to want to run from both obstacles and other neatos. When properly transitioned, these behaviors let the neatos play tag.  
+                </p>
+            </div>
+            <div id="ethics-statement">
+                <h3>Ethics Statement</h3>
+                <p>
+                    The current iteration of the software is only functional on the Neato Robotics robot vacuums, and the navigation is based on color recognition. 
+                    The color recognition is not novel technology but could be used in weapons systems to target objects of a certain known color. If our software is used, it must not be adapted to other platforms or hardware.
+                    <br>
+                    There are currently 3 set colors which the software will use to recognize other Neato robots; if a person were to don attire in these colors, Neatos may mistake them for a Neato and flee from them or chase them.
+                    The robot vacuum on which this software is run does not generally pose a danger to humans over the age of 4 years old. 
+                    We advise users and spectators to avoid wearing the colors used by the navigation software, and keep children under 4 away from the operating area. 
+                    Additionally, Neato robot vacuums may pose a tripping hazard; be aware when in an area traversed by Neatos or other robotic vacuums.
+                </p>
             </div>
         </div>
     </div>

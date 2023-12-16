@@ -32,8 +32,9 @@ body {
     height: 100%;
     position: relative;
     top: 17.5%;
-    border: 3px;
+    border: 2px;
     border-radius: 3px;
+    border-style: solid;
     margin: 2px;
     padding: 5px 20px 5px 20px;
     font-size: large;
@@ -50,12 +51,12 @@ body {
     background-color: rgba(6, 19, 41, 0.8);
     color: rgb(240, 242, 246);
     border-radius: 15px;
-    width: 90%;
+    width: 95%;
     max-height: 100%;
     min-height: -moz-fit-content;
     min-height: fit-content;
     position: relative;
-    left: 5%;
+    left: 2.5%;
     right: 5%;
     top: 200px;
     text-align: center;
@@ -74,23 +75,46 @@ body {
 .flex-container {
     display: flex;
     flex-direction: row;
-    max-width: 33%;
+    max-width: 100%;
     min-width: -moz-fit-content;
     min-width: -webkit-fill-available;
     min-width: fit-content;
     padding: 5px 20px;  
 }
-.flex-container img{
+.flex-container img, .flex-container video{
     align-self: center;
     max-width: 100%;
     max-height: 200%;
 }
 #main-desc, #system-arch, #ethics-statement {
+    max-width: 25%;
     margin: 0 5px;
     display: flex;
+    box-sizing: border-box;
     flex-direction: column;
+    font-size: large;
+    border: 3px;
+    border-radius: 3px;
+    border-style: solid;
+    border-color: azure;
+    padding: 5px 20px;
 }  
-.images {
+#system-arch {
+    max-width: 50%;
+}
+#system-arch ul {
+    text-align: left;
+    background-color: rgb(5, 32, 68, 0.85);
+    border: 2px;
+    border-radius: 15px;
+}
+#system-arch ul strong {
+    color: rgb(194, 255, 250);
+}
+#main-desc, #system-arch, #ethics-statement h3 {
+    font-size: larger;
+}
+.images, .video {
     flex-direction: row;
     flex-wrap: wrap;
     box-sizing: border-box;
@@ -100,12 +124,10 @@ body {
     min-height: -moz-fit-content;
     min-height: fit-content;
     position: relative;
-    left: 5%;
-    right: 5%;
     text-align: center;
 }
-.images img {
-    max-width: 30%;
+.images img, .images video {
+    max-width: 50%;
     height: -moz-fit-content;
     height: fit-content;
     
