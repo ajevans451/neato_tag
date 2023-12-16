@@ -1,4 +1,6 @@
 # Neato Tag
+
+### Check out the website [here](https://ajevans451.github.io/neato_tag/)!
 ## Ethics Statement
 
 ## Project Timeline
