@@ -14,6 +14,8 @@ FIRST_CAMERA_PORT = 8888
 def generate_launch_description():
     interfaces_launch_file_dir = os.path.join(get_package_share_directory('neato2_gazebo'), 'launch')
 
+    # Connect to each of the neatos
+    # (including this does not bring up the camera connection; connect to neatos separately)
     launch_neatos = [
         GroupAction(actions=[PushRosNamespace(namespace=(robot_name := f'robot{idx}')),
            Node(
@@ -62,7 +64,8 @@ def generate_launch_description():
             )
         ])
     for idx, host in enumerate(NEATO_TAG.hosts)]
-    
+
+    # Run the camera detector nodes
     camera_detector_nodes = [
         Node(
             package='neato_tag',
@@ -74,7 +77,8 @@ def generate_launch_description():
             ]
         )
     for idx in range(NEATO_TAG.num_players)]
-    
+
+    # Run the tagging nodes
     tagging_nodes = [
         Node(
             package='neato_tag',
@@ -90,7 +94,8 @@ def generate_launch_description():
             ]
         )
     for idx in range(NEATO_TAG.num_players)]
-    
+
+    # Run the navigator nodes
     navigator_nodes = [
         Node(
             package='neato_tag',
